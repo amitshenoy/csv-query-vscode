@@ -1,0 +1,1 @@
+/* Styles are inlined in html.ts so the webview works packaged in a .vsix with a strict CSP and no CDN. */

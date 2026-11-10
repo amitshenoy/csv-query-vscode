@@ -1,0 +1,17 @@
+:root{color-scheme:light dark}
+body{font-family:var(--vscode-font-family);color:var(--vscode-foreground);background:var(--vscode-editor-background);margin:0;padding:10px}
+button{background:var(--vscode-button-background);color:var(--vscode-button-foreground);border:0;padding:5px 12px;border-radius:3px;cursor:pointer}
+button.secondary{background:var(--vscode-button-secondaryBackground);color:var(--vscode-button-secondaryForeground)}
+textarea{width:100%;box-sizing:border-box;min-height:110px;background:var(--vscode-input-background);color:var(--vscode-input-foreground);border:1px solid var(--vscode-input-border,#444);font-family:var(--vscode-editor-font-family);font-size:13px;padding:8px}
+.bar,.status{padding:8px;background:var(--vscode-editorWidget-background);border:1px solid var(--vscode-panel-border);margin-bottom:8px;font-size:12px}
+.error{color:var(--vscode-errorForeground);white-space:pre-wrap}
+#scriptStatus{padding:8px;margin-bottom:8px;font-size:12px;background:var(--vscode-inputValidation-warningBackground,#7a5c00);color:var(--vscode-foreground);border:1px solid var(--vscode-panel-border)}
+table{border-collapse:collapse;width:100%;font-size:12px}
+th,td{border:1px solid var(--vscode-panel-border);padding:4px 6px;text-align:left;max-width:320px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+th{position:sticky;top:0;background:var(--vscode-editorWidget-background);cursor:pointer}
+.null{font-style:italic;opacity:.6}
+.gridwrap{overflow:auto;max-height:55vh;border:1px solid var(--vscode-panel-border)}
+input,select{background:var(--vscode-input-background);color:var(--vscode-input-foreground);border:1px solid var(--vscode-input-border,#444);padding:4px}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:6px 0}
+.hist{font-size:12px;cursor:pointer;opacity:.9}
+.hist:hover{text-decoration:underline}

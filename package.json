@@ -1,0 +1,170 @@
+{
+  "name": "csv-query-for-vscode",
+  "displayName": "CSV Query for VS Code",
+  "description": "Run SQLite SQL against any delimited text file \u2014 like Notepad++ CSV Query. Table THIS, all columns TEXT, leading zeros preserved.",
+  "version": "1.0.0",
+  "publisher": "amitshenoy",
+  "license": "UNLICENSED",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Other",
+    "Data Science"
+  ],
+  "activationEvents": [
+    "onCommand:csvQuery.openQueryPanel",
+    "onCommand:csvQuery.queryWith"
+  ],
+  "main": "./out/extension.js",
+  "scripts": {
+    "compile": "node esbuild.js",
+    "watch": "node esbuild.js --watch",
+    "package": "npm run compile -- --production && npx @vscode/vsce package --allow-missing-repository",
+    "lint": "eslint src --ext ts",
+    "test": "npm run compile-tests && node --test out-test/test/*.test.js",
+    "compile-tests": "tsc -p tsconfig.test.json"
+  },
+  "contributes": {
+    "commands": [
+      {
+        "command": "csvQuery.openQueryPanel",
+        "title": "CSV Query: Open Query Panel"
+      },
+      {
+        "command": "csvQuery.reloadActiveFile",
+        "title": "CSV Query: Reload Active File"
+      },
+      {
+        "command": "csvQuery.changeDelimiter",
+        "title": "CSV Query: Change Delimiter"
+      },
+      {
+        "command": "csvQuery.addFileAsTable",
+        "title": "CSV Query: Add File as Table"
+      },
+      {
+        "command": "csvQuery.exportQueryResults",
+        "title": "CSV Query: Export Query Results"
+      },
+      {
+        "command": "csvQuery.clearHistory",
+        "title": "CSV Query: Clear Query History"
+      },
+      {
+        "command": "csvQuery.queryWith",
+        "title": "Query with CSV Query"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "csvQuery.openQueryPanel",
+        "key": "alt+ctrl+q",
+        "mac": "alt+cmd+q",
+        "when": "editorTextFocus"
+      }
+    ],
+    "menus": {
+      "editor/context": [
+        {
+          "command": "csvQuery.queryWith",
+          "group": "navigation@90",
+          "when": "editorTextFocus"
+        }
+      ],
+      "explorer/context": [
+        {
+          "command": "csvQuery.queryWith",
+          "group": "navigation@90"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "CSV Query",
+      "properties": {
+        "csvQuery.defaultDelimiter": {
+          "type": "string",
+          "default": "",
+          "description": "Default delimiter or empty for auto."
+        },
+        "csvQuery.autoDetectDelimiter": {
+          "type": "boolean",
+          "default": true
+        },
+        "csvQuery.firstRowIsHeader": {
+          "type": "string",
+          "enum": [
+            "auto",
+            "true",
+            "false"
+          ],
+          "default": "auto"
+        },
+        "csvQuery.defaultResultLimit": {
+          "type": "number",
+          "default": 10000,
+          "description": "Deprecated: results are no longer capped. The grid pages through the complete result set and export streams all rows."
+        },
+        "csvQuery.maxResultLimit": {
+          "type": "number",
+          "default": 100000,
+          "description": "Deprecated: results are no longer capped. The grid pages through the complete result set and export streams all rows."
+        },
+        "csvQuery.queryHistorySize": {
+          "type": "number",
+          "default": 50
+        },
+        "csvQuery.exportIncludeBom": {
+          "type": "boolean",
+          "default": false
+        },
+        "csvQuery.treatAllColumnsAsText": {
+          "type": "boolean",
+          "default": true,
+          "description": "Always TEXT (locked on for identifier preservation in this build)."
+        },
+        "csvQuery.enableLargeFileWarning": {
+          "type": "boolean",
+          "default": true
+        },
+        "csvQuery.largeFileWarningMB": {
+          "type": "number",
+          "default": 200
+        },
+        "csvQuery.defaultQuery": {
+          "type": "string",
+          "default": "SELECT *\nFROM THIS\nLIMIT 1000;"
+        },
+        "csvQuery.rememberLastDelimiterByFile": {
+          "type": "boolean",
+          "default": true
+        }
+      }
+    }
+  },
+  "dependencies": {
+    "papaparse": "^5.7.0",
+    "sql.js": "^1.15.2"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.6",
+    "@types/papaparse": "^5.5.2",
+    "@types/sql.js": "^1.4.11",
+    "@types/vscode": "^1.85.0",
+    "@typescript-eslint/eslint-plugin": "^8.72.1",
+    "@typescript-eslint/parser": "^8.72.1",
+    "@vscode/vsce": "^4.1.0",
+    "esbuild": "^0.28.2",
+    "eslint": "^10.14.0",
+    "typescript": "^6.0.3"
+  },
+  "icon": "icon.png",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/amitshenoy/csv-query-vscode.git"
+  },
+  "homepage": "https://github.com/amitshenoy/csv-query-vscode#readme",
+  "bugs": {
+    "url": "https://github.com/amitshenoy/csv-query-vscode/issues"
+  }
+}

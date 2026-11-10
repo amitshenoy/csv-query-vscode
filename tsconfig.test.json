@@ -1,0 +1,26 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "target": "ES2022",
+    "outDir": "out-test",
+    "lib": [
+      "ES2022"
+    ],
+    "sourceMap": false,
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "moduleResolution": "node",
+    "types": [
+      "node"
+    ],
+    "ignoreDeprecations": "6.0"
+  },
+  "include": [
+    "src/parser/**/*.ts",
+    "src/utils/**/*.ts",
+    "src/database/**/*.ts",
+    "src/export/**/*.ts",
+    "test/**/*.ts"
+  ]
+}

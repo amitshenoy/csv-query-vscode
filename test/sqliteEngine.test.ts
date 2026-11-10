@@ -1,0 +1,17 @@
+
+import { test, before } from 'node:test'; import assert from 'node:assert'; import * as path from 'path';
+import { initEngine, createDb } from '../src/database/sqliteEngine';
+import { parseDelimited } from '../src/parser/delimitedParser';
+import { loadTable } from '../src/database/tableLoader';
+import { executeQuery, queryPage, stripSql } from '../src/database/queryExecutor';
+import { friendlyError } from '../src/utils/errors';
+before(async()=>{ await initEngine(path.join(__dirname,'..','..','node_modules','sql.js','dist','sql-wasm.wasm')); });
+test('TEST9 SELECT * FROM THIS WHERE PayorCode',()=>{const db=createDb();loadTable(db,'THIS',parseDelimited('Employee_ID,PayorCode\n001234,PC007\n000001,PC008'),'x.csv');const r=executeQuery(db,"SELECT * FROM THIS WHERE PayorCode = 'PC007'",100);assert.equal(r.rows[0][0],'001234');db.close();});
+test('TEST10 JOIN with REF',()=>{const db=createDb();loadTable(db,'THIS',parseDelimited('Employee_ID\n1\n2'),'a');loadTable(db,'REF',parseDelimited('Employee_ID\n1'),'b');const r=executeQuery(db,'SELECT t.* FROM THIS t LEFT JOIN REF r ON t.Employee_ID = r.Employee_ID WHERE r.Employee_ID IS NULL',100);assert.deepEqual(r.rows,[['2']]);db.close();});
+test('TEST12 friendly error lists columns',()=>{const db=createDb();loadTable(db,'THIS',parseDelimited('PayorCode,Amount\nPC007,10'),'a');assert.throws(()=>executeQuery(db,'SELECT Nope FROM THIS',100));assert.match(friendlyError(new Error('no such column: Nope'),['PayorCode','Amount']),/Available columns/);db.close();});
+test('CAST Amount works',()=>{const db=createDb();loadTable(db,'THIS',parseDelimited('Amount\n500\n1500'),'a');const r=executeQuery(db,'SELECT * FROM THIS WHERE CAST(Amount AS REAL) > 1000',100);assert.deepEqual(r.rows,[['1500']]);db.close();});
+
+test('bulk insert escapes quotes/newlines and keeps leading zeros',()=>{const db=createDb();const csv=['Name,Note',"O'Brien,001234",'"Say ""hi""","line1','line2"'].join('\n');loadTable(db,'THIS',parseDelimited(csv),'a');const r=executeQuery(db,"SELECT * FROM THIS WHERE Name = 'O''Brien'",100);assert.equal(r.rows[0][1],'001234');const r2=executeQuery(db,"SELECT Note FROM THIS WHERE Name LIKE 'Say%'",100);assert.equal(r2.rows[0][0],'line1\nline2');db.close();});
+test('queryPage pages the FULL result set with a true total and no cap',()=>{const db=createDb();const lines=['N'];for(let i=0;i<2500;i++)lines.push(String(i));loadTable(db,'THIS',parseDelimited(lines.join('\n')),'a');const p0=queryPage(db,'SELECT * FROM THIS;',1000,0);assert.equal(p0.total,2500);assert.equal(p0.rows.length,1000);const p2=queryPage(db,'SELECT * FROM THIS',1000,2000);assert.equal(p2.rows.length,500);assert.equal(p2.rows[0][0],'2000');db.close();});
+test('queryPage respects a LIMIT inside the user SQL; stripSql trims semicolons',()=>{assert.equal(stripSql('SELECT 1;;  '),'SELECT 1');const db=createDb();loadTable(db,'THIS',parseDelimited('N\n1\n2\n3'),'a');const r=queryPage(db,'SELECT * FROM THIS LIMIT 2;',1000,0);assert.equal(r.total,2);db.close();});
+test('spaced header is queryable unquoted after space-stripping (Amit ledger case)',()=>{const db=createDb();loadTable(db,'THIS',parseDelimited('AccountCode|Spend Category\n717900|SC0127\n717900|SC0129\n123|SC0129'),'ledger.txt');const r=executeQuery(db,"SELECT * FROM THIS WHERE AccountCode = '717900' AND SpendCategory = 'SC0129'",100);assert.deepEqual(r.rows,[['717900','SC0129']]);db.close();});
