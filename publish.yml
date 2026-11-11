@@ -1,0 +1,34 @@
+name: Publish to VS Code Marketplace
+
+# Publishes the version in package.json to the Marketplace using
+# Trusted Publishing (GitHub OIDC) — no stored PAT or long-lived secret.
+# Triggers:
+#   - pushing a version tag (e.g. v1.0.1), incl. tags created with a GitHub Release
+#   - manually from the Actions tab ("Run workflow")
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  id-token: write # required for the OIDC token exchange
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      - run: npm test
+
+      - name: Publish to the Marketplace (Trusted Publishing / OIDC)
+        run: npx --yes @vscode/vsce@^4.0.2 publish --oidc
