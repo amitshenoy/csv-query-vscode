@@ -10,21 +10,27 @@ on:
     tags:
       - "v*"
   workflow_dispatch:
+
 permissions:
   id-token: write # required for the OIDC token exchange
   contents: read
+
 jobs:
   publish:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: npm
+
       - run: npm ci
+
       - run: npm test
       - name: Build the extension bundle
         run: npm run compile -- --production
+
       - name: Publish to the Marketplace (Trusted Publishing / OIDC)
         run: npx --yes @vscode/vsce@^4.0.2 publish --oidc
