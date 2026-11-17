@@ -18,6 +18,7 @@
   ],
   "main": "./out/extension.js",
   "scripts": {
+    "vscode:prepublish": "npm run compile -- --production",
     "compile": "node esbuild.js",
     "watch": "node esbuild.js --watch",
     "package": "npm run compile -- --production && npx @vscode/vsce package --allow-missing-repository",
