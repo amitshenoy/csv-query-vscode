@@ -19,7 +19,7 @@ Run standard SQLite SQL against any delimited text file — recreating the Notep
 2. Run **CSV Query: Open Query Panel** — Command Palette, editor/Explorer right-click → *Query with CSV Query*, or shortcut **Option+Command+Q** (macOS) / **Alt+Ctrl+Q** (Windows/Linux).
 3. Press **Cmd/Ctrl+Enter** to run. Default: `SELECT * FROM THIS LIMIT 1000;`
 
-The panel shows source, delimiter, header, column/row counts and load time; a sortable (click header), filterable, paginated grid (1,000 rows/page, paging through the complete result set — no 10,000-row browsing cap); NULL distinct from empty string; double-click a cell to copy it; query history (last 50, persisted, click to restore, pinned entries survive Clear History via the Clear Query History command clearing unpinned).
+The query view opens in the Panel below the editor (your file keeps the full editor width). It shows source, delimiter, header, column/row counts and load time; a sortable (click header), filterable, paginated grid (1,000 rows/page, paging through the complete result set — no 10,000-row browsing cap); NULL distinct from empty string; double-click a cell to copy it. The SQL box grows with your query (one line tall for a one-line query). Query history (last 50, persisted, click to restore, pinned entries survive Clear History via the Clear Query History command clearing unpinned) sits behind the History button, collapsed by default.
 
 ## The THIS table
 The active file is always table `THIS` (quoted internally, you write it plainly):

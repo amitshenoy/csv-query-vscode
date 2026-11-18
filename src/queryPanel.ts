@@ -14,21 +14,41 @@ import { delimiterLabel } from './parser/delimiterDetector';
 import { log } from './utils/log';
 import { decideReadMode, dirtyOverSyncLimit } from './utils/sourceRead';
 
-export class QueryPanel {
+export class QueryPanel implements vscode.WebviewViewProvider {
   static current: QueryPanel | undefined;
-  private db: Database; private tables: LoadedTable[] = []; private lastResult: any = null;
+  static readonly viewId = 'csvQuery.view';
+  private db!: Database; private tables: LoadedTable[] = []; private lastResult: any = null;
   private delimiter: string | undefined; private hasHeader: boolean | undefined;
   private sourceName = 'Untitled'; private sourceText = ''; private history: QueryHistory; private sourceUri: string | undefined;
   private webviewReady = false; private lastSql = ''; private static readonly GRID_PAGE = 1000; private pendingPosts: any[] = []; private lastSourcePost: any = null; private lastResultPost: any = null;
-  private constructor(private panel: vscode.WebviewPanel, private ctx: vscode.ExtensionContext) {
+  private view: vscode.WebviewView | undefined;
+  private constructor(private ctx: vscode.ExtensionContext) {
     const cfg = vscode.workspace.getConfiguration('csvQuery');
     this.history = new QueryHistory(cfg.get<number>('queryHistorySize', 50), ctx.globalState.get('csvQuery.history', []));
-    this.db = createDb();
-    panel.webview.html = getHtml(panel.webview, ctx.extensionUri, cfg.get<string>('defaultQuery', 'SELECT *\nFROM THIS\nLIMIT 1000;'));
-    log('Panel created; webview HTML set (external media/main.js).');
-    panel.webview.onDidReceiveMessage(m => this.onMessage(m));
-    panel.onDidDispose(() => { try{this.db.close();}catch{} if(QueryPanel.current===this)QueryPanel.current=undefined; });
   }
+  /** Registers the singleton provider for the bottom-Panel webview view (v1.1.0: the UI
+      lives in the Panel area below the editor, not in an editor tab beside the file). */
+  static register(ctx: vscode.ExtensionContext): QueryPanel {
+    const provider = new QueryPanel(ctx); QueryPanel.current = provider;
+    ctx.subscriptions.push(vscode.window.registerWebviewViewProvider(QueryPanel.viewId, provider, { webviewOptions: { retainContextWhenHidden: true } }));
+    return provider;
+  }
+  private ensureDb() { if (!this.db) this.db = createDb(); }
+  resolveWebviewView(view: vscode.WebviewView) {
+    this.view = view; this.webviewReady = false; this.pendingPosts = [];
+    const cfg = vscode.workspace.getConfiguration('csvQuery');
+    view.webview.options = { enableScripts: true, localResourceRoots: [this.ctx.extensionUri] };
+    view.webview.html = getHtml(view.webview, this.ctx.extensionUri, cfg.get<string>('defaultQuery', 'SELECT *\nFROM THIS\nLIMIT 1000;'));
+    log('View resolved in Panel area; webview HTML set (external media/main.js).');
+    view.webview.onDidReceiveMessage(m => this.onMessage(m));
+    view.onDidDispose(() => { if (this.view === view) this.view = undefined; });
+    // Make Run work even when the user opens the view directly from the Panel,
+    // before any command has loaded a file.
+    (async () => { try { await initEngine(path.join(this.ctx.extensionPath, 'out', 'sql-wasm.wasm')); this.ensureDb(); } catch (e) { log(`Engine init from view failed: ${e instanceof Error ? e.message : String(e)}`); } })();
+    if (!this.sourceUri) this.post({ type: 'source', text: 'No file loaded yet — open a delimited file and run “CSV Query: Open Query Panel”.', delimiter: this.delimiter || ',', hasHeader: true, tables: '' });
+  }
+  /** Shows the bottom Panel and focuses the CSV Query view there. */
+  async reveal() { await vscode.commands.executeCommand(`${QueryPanel.viewId}.focus`); }
   /** A source is a file and/or an editor document. For file-backed sources the file is
       read from disk (see utils/sourceRead) — never through VS Code's document sync,
       which hard-fails above 50 MB with "cannot be synchronized with extensions". */
@@ -54,9 +74,10 @@ export class QueryPanel {
     if (!src) { vscode.window.showWarningMessage('CSV Query: no file was selected. Open a delimited file, or right-click one in Explorer and choose \u201cQuery with CSV Query\u201d.'); return; }
     const wasm = path.join(ctx.extensionPath, 'out', 'sql-wasm.wasm');
     await initEngine(wasm);
-    if (QueryPanel.current) { QueryPanel.current.panel.reveal(vscode.ViewColumn.Beside); await QueryPanel.current.loadFromSource(src); return; }
-    const panel = vscode.window.createWebviewPanel('csvQuery', 'CSV Query', vscode.ViewColumn.Beside, { enableScripts: true, retainContextWhenHidden: true, localResourceRoots: [ctx.extensionUri] });
-    const qp = new QueryPanel(panel, ctx); QueryPanel.current = qp; await qp.loadFromSource(src);
+    const qp = QueryPanel.current ?? QueryPanel.register(ctx);
+    qp.ensureDb();
+    await qp.reveal();
+    await qp.loadFromSource(src);
   }
   async reloadSource() {
     // Reload the source this panel was loaded from, not whatever editor happens to be active.
@@ -117,16 +138,17 @@ export class QueryPanel {
   }
   private post(m:any){
     if (m.type==='source') this.lastSourcePost = m; if (m.type==='result') this.lastResultPost = m;
-    if (!this.webviewReady) { this.pendingPosts.push(m); return; }
-    this.panel.webview.postMessage(m);
+    if (!this.view || !this.webviewReady) { this.pendingPosts.push(m); return; }
+    this.view.webview.postMessage(m);
   }
   private markReady(){
+    if (!this.view) return;
     this.webviewReady = true; log(`Webview ready; flushing ${this.pendingPosts.length} queued message(s)`);
     const queued = this.pendingPosts; this.pendingPosts = [];
-    for (const m of queued) this.panel.webview.postMessage(m);
+    for (const m of queued) this.view.webview.postMessage(m);
     // Belt and braces: if the source state predates this webview, resend it so the bar can never stay on "Loading…"
-    if (!queued.some(m => m.type==='source') && this.lastSourcePost) this.panel.webview.postMessage(this.lastSourcePost);
-    if (!queued.some(m => m.type==='result') && this.lastResultPost) this.panel.webview.postMessage(this.lastResultPost);
+    if (!queued.some(m => m.type==='source') && this.lastSourcePost) this.view.webview.postMessage(this.lastSourcePost);
+    if (!queued.some(m => m.type==='result') && this.lastResultPost) this.view.webview.postMessage(this.lastResultPost);
   }
   private postHistory(){ this.post({type:'history', items:this.history.list()}); this.ctx.globalState.update('csvQuery.history', this.history.toJSON()); }
   clearHistory(){ this.history.clearUnpinned(); this.postHistory(); }

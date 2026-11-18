@@ -16,14 +16,34 @@ const PAGE = 500;
 function el(id) { return document.getElementById(id); }
 function sql() { return el('sql').value; }
 
+/* The SQL box hugs its content: 1 line when the query is 1 line, growing as lines
+   are added, capped at 40% of the view height (then it scrolls internally). */
+function autoResize() {
+  const t = el('sql'); if (!t) return;
+  const max = Math.max(60, Math.floor(((window.innerHeight || 600) * 0.4)));
+  t.style.height = 'auto';
+  const sh = t.scrollHeight || 0;
+  const border = (t.offsetHeight || 0) - (t.clientHeight || 0); // border-box: scrollHeight excludes the border
+  t.style.height = Math.min(sh + border, max) + 'px';
+  t.style.overflowY = sh + border > max ? 'auto' : 'hidden';
+}
+
 el('run').addEventListener('click', function () { post('run', { sql: sql() }); });
 el('export').addEventListener('click', function () { post('export', {}); });
 el('reload').addEventListener('click', function () { post('reload', {}); });
 el('addFile').addEventListener('click', function () { post('addFile', {}); });
-el('clearSql').addEventListener('click', function () { el('sql').value = ''; });
+el('clearSql').addEventListener('click', function () { el('sql').value = ''; autoResize(); });
 el('fmt').addEventListener('click', function () {
   el('sql').value = sql().replace(/\s+/g, ' ').replace(/ (FROM|WHERE|GROUP BY|ORDER BY|LEFT JOIN|HAVING|LIMIT) /gi, '\n$1 ');
+  autoResize();
 });
+el('sql').addEventListener('input', autoResize);
+window.addEventListener('resize', autoResize);
+el('histToggle').addEventListener('click', function () {
+  const w = el('historyWrap'); const open = !!w.hidden; w.hidden = !open;
+  el('histToggle').textContent = open ? 'History ▾' : 'History ▸';
+});
+autoResize();
 el('delim').addEventListener('change', function (e) { post('setDelimiter', { delimiter: e.target.value }); });
 el('hdr').addEventListener('change', function (e) { post('setHeader', { hasHeader: e.target.checked }); });
 document.addEventListener('keydown', function (e) { if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') post('run', { sql: sql() }); });
@@ -71,7 +91,7 @@ window.addEventListener('message', function (e) {
   if (m.type === 'error') { const s = el('status'); s.textContent = m.text; s.className = 'status error'; }
   if (m.type === 'history') {
     el('history').innerHTML = m.items.map(function (h, i) { return '<div class="hist" data-i="' + i + '">' + (h.pinned ? '📌 ' : '') + new Date(h.ts).toLocaleString() + ' · ' + esc(h.source) + ' — ' + esc(h.sql).slice(0, 120) + '</div>'; }).join('');
-    el('history').querySelectorAll('.hist').forEach(function (node) { node.addEventListener('click', function () { el('sql').value = m.items[+node.dataset.i].sql; }); });
+    el('history').querySelectorAll('.hist').forEach(function (node) { node.addEventListener('click', function () { el('sql').value = m.items[+node.dataset.i].sql; autoResize(); }); });
   }
-  if (m.type === 'setSql') { el('sql').value = m.sql; }
+  if (m.type === 'setSql') { el('sql').value = m.sql; autoResize(); }
 });

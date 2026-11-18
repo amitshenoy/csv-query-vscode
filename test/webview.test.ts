@@ -23,4 +23,11 @@ test('shipped webview script loads, posts ready, Run posts the SQL, Clear emptie
   // A source message must update the source bar, delimiter and header controls
   windowHandlers['message']({ data: { type: 'source', text: 'Source: x.txt · Rows: 1', delimiter: '|', hasHeader: true, tables: '' } });
   assert.match(makeEl('source').textContent, /x\.txt/); assert.equal(makeEl('delim').value, '|');
+  // v1.1.0: the SQL box auto-sizes (a px height is applied on load, not a fixed block)
+  assert.match(String(makeEl('sql').style.height || ''), /^\d+px$/, 'autoResize must set an explicit px height on the SQL box');
+  // v1.1.0: History is a toggle button — the wrapper starts hidden (as in the HTML) and toggles
+  const wrap = makeEl('historyWrap'); wrap.hidden = true;
+  assert.equal(typeof makeEl('histToggle').handlers.click, 'function'); makeEl('histToggle').handlers.click();
+  assert.equal(wrap.hidden, false, 'History button must reveal the history list');
+  makeEl('histToggle').handlers.click(); assert.equal(wrap.hidden, true, 'History button must hide the history list again');
 });

@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import { QueryPanel } from './queryPanel';
 export function registerCommands(ctx: vscode.ExtensionContext) {
+  QueryPanel.register(ctx);
   ctx.subscriptions.push(
     vscode.commands.registerCommand('csvQuery.openQueryPanel', (uri?: vscode.Uri) => QueryPanel.createOrShow(ctx, uri)),
     vscode.commands.registerCommand('csvQuery.queryWith', (uri?: vscode.Uri) => QueryPanel.createOrShow(ctx, uri)),

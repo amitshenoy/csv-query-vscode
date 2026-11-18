@@ -1,4 +1,8 @@
 # Changelog
+## 1.1.0 — 2026-11-18
+- The query UI now lives in the Panel area below the editor instead of opening as a tab beside the file (requested in user feedback), so the data file keeps the full editor width and the query workspace sits underneath it. Same commands and shortcut — "CSV Query: Open Query Panel" now reveals and focuses the view in the bottom Panel.
+- The SQL editor hugs its content: it is exactly one line tall for a one-line query and grows as lines are added (capped at 40% of the view height, then it scrolls internally), instead of a fixed ~6-line block that could not shrink.
+- Query history no longer occupies permanent space under the results: it is behind a History toggle button next to Export Results, collapsed by default; click to show, click again to hide. Entries still restore on click.
 ## 0.1.0 — 2026-11-06
 - Phase 1 MVP + Phase 2 polish + core Phase 3: open query panel on any/unsaved file, delimiter & header detection, in-memory sql.js SQLite with THIS table, all-TEXT columns, Cmd/Ctrl+Enter, friendly errors, sortable/filterable paginated grid, persistent query history, CSV/TSV export, reload, settings, context menus, multi-file tables and joins, large-file warning.
 - Known limits: grid pagination is 500/page instead of true virtualization; SQL highlighting in the editor is plain monospace (no syntax colours); streaming chunk-parse for >200 MB files is warned, not yet chunked.
