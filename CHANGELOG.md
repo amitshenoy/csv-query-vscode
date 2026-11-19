@@ -1,4 +1,7 @@
 # Changelog
+## 1.1.1 — 2026-11-18
+- Opening Query History now auto-scrolls the panel to the history area, so it is visible immediately instead of opening below the fold where a scroll was needed to notice it.
+- Docs: the README's install-from-.vsix instructions no longer name an old version's file.
 ## 1.1.0 — 2026-11-18
 - The query UI now lives in the Panel area below the editor instead of opening as a tab beside the file (requested in user feedback), so the data file keeps the full editor width and the query workspace sits underneath it. Same commands and shortcut — "CSV Query: Open Query Panel" now reveals and focuses the view in the bottom Panel.
 - The SQL editor hugs its content: it is exactly one line tall for a one-line query and grows as lines are added (capped at 40% of the view height, then it scrolls internally), instead of a fixed ~6-line block that could not shrink.

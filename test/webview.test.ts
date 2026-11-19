@@ -7,7 +7,7 @@ test('shipped webview script loads, posts ready, Run posts the SQL, Clear emptie
   const src = fs.readFileSync(path.join(__dirname, '..', '..', 'media', 'main.js'), 'utf8');
   const posted: any[] = []; const els = new Map<string, any>();
   const makeEl = (id: string) => {
-    if (!els.has(id)) els.set(id, { id, value: id === 'sql' ? 'SELECT * FROM THIS;' : '', checked: true, textContent: '', innerHTML: '', className: '', style: {}, dataset: {}, handlers: {} as Record<string, Function>, addEventListener(t: string, f: Function) { this.handlers[t] = f; }, querySelectorAll: () => [] });
+    if (!els.has(id)) els.set(id, { id, value: id === 'sql' ? 'SELECT * FROM THIS;' : '', checked: true, textContent: '', innerHTML: '', className: '', style: {}, dataset: {}, handlers: {} as Record<string, Function>, addEventListener(t: string, f: Function) { this.handlers[t] = f; }, querySelectorAll: () => [], scrollCalls: [] as any[], scrollIntoView(opts: any) { this.scrollCalls.push(opts); } });
     return els.get(id);
   };
   const windowHandlers: Record<string, Function> = {}; const docHandlers: Record<string, Function> = {};
@@ -29,5 +29,8 @@ test('shipped webview script loads, posts ready, Run posts the SQL, Clear emptie
   const wrap = makeEl('historyWrap'); wrap.hidden = true;
   assert.equal(typeof makeEl('histToggle').handlers.click, 'function'); makeEl('histToggle').handlers.click();
   assert.equal(wrap.hidden, false, 'History button must reveal the history list');
+  // v1.1.1: opening History must scroll the history area into view; closing must not scroll
+  assert.equal(wrap.scrollCalls.length, 1, 'Opening History must scroll the history area into view');
   makeEl('histToggle').handlers.click(); assert.equal(wrap.hidden, true, 'History button must hide the history list again');
+  assert.equal(wrap.scrollCalls.length, 1, 'Closing History must not scroll');
 });

@@ -10,8 +10,8 @@ Run standard SQLite SQL against any delimited text file — recreating the Notep
 - In-memory SQLite via sql.js (WebAssembly) — no native dependencies, no Python/SQLite/DuckDB/Homebrew, no server, no internet, no telemetry, no CDN. Works on macOS Apple Silicon and Windows.
 
 ## Install from the .vsix
-1. In VS Code: Extensions view → `…` menu → **Install from VSIX…** → pick `csv-query-for-vscode-1.0.0.vsix`.
-   Or from a terminal: `code --install-extension csv-query-for-vscode-1.0.0.vsix`
+1. In VS Code: Extensions view → `…` menu → **Install from VSIX…** → pick the `.vsix` you downloaded (e.g. `csv-query-for-vscode-1.1.1.vsix`).
+   Or from a terminal: `code --install-extension csv-query-for-vscode-<version>.vsix`
 2. Reload VS Code if prompted.
 
 ## Use

@@ -2,7 +2,7 @@
   "name": "csv-query-for-vscode",
   "displayName": "CSV Query for VS Code",
   "description": "Run SQLite SQL against any delimited text file \u2014 like Notepad++ CSV Query. Table THIS, all columns TEXT, leading zeros preserved.",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "publisher": "amitshenoy",
   "license": "UNLICENSED",
   "engines": {

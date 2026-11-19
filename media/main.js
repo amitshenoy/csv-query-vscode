@@ -42,6 +42,8 @@ window.addEventListener('resize', autoResize);
 el('histToggle').addEventListener('click', function () {
   const w = el('historyWrap'); const open = !!w.hidden; w.hidden = !open;
   el('histToggle').textContent = open ? 'History ▾' : 'History ▸';
+  // The history area can open below the visible part of the panel — bring it into view.
+  if (open && typeof w.scrollIntoView === 'function') { w.scrollIntoView({ block: 'start', behavior: 'smooth' }); }
 });
 autoResize();
 el('delim').addEventListener('change', function (e) { post('setDelimiter', { delimiter: e.target.value }); });
