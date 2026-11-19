@@ -1,12 +1,14 @@
 # CSV Query for VS Code
 
-Run standard SQLite SQL against any delimited text file — recreating the Notepad++ CSV Query experience. Open file → Open CSV Query → `SELECT * FROM THIS` → view results.
+Run standard SQLite SQL against any delimited text file — recreating the Notepad++ CSV Query experience. Open file → Open CSV Query → `SELECT * FROM THIS` → view results. The panel follows you: switch to another data file in the editor and it loads automatically, so the results always match the file you are looking at (disable with `csvQuery.followActiveEditor`).
 
 ## What it does
 - Works on `.csv`, `.txt`, `.tsv`, `.dat`, `.clar`, extensionless files, and **untitled/unsaved** documents — no renaming, no saving first. It queries the active editor's current contents.
 - Auto-detects comma / pipe / tab / semicolon / caret by sampling many records for the most consistent field count; you can override in the panel or with **CSV Query: Change Delimiter**.
 - Auto-detects a header row; override with the "First row contains column names" checkbox. No header → `Column1, Column2, …`. Duplicate/blank headers become unique (`Name, Name_2, Column3`).
 - **All columns are TEXT, always.** Leading zeros and business IDs are preserved exactly: `001234`, `PC007`, `20260901`. A later alphanumeric row can never fail a load. Convert explicitly in SQL: `WHERE CAST(Amount AS REAL) > 1000`.
+- **Color Columns**: one click paints the loaded file's columns, each in its own colour, with the results grid's headers tinted to match — so column 7 in the file is column 7 in your results. For files up to VS Code's ~50 MB document-sync limit the open editor is painted **in place** — no new tab, the file just lights up where it sits, and painting follows scrolling and editing. Above that limit VS Code will not expose a file's document to extensions at all, so no extension can paint the built-in editor; for those files the toggle flips the file's one tab to the **CSV Query Color Editor**, a full-file coloured view (line index built once, lines rendered on demand as you scroll, so even a multi-million-row export stays fluid), and flips back to plain text on the next click.
+
 - In-memory SQLite via sql.js (WebAssembly) — no native dependencies, no Python/SQLite/DuckDB/Homebrew, no server, no internet, no telemetry, no CDN. Works on macOS Apple Silicon and Windows.
 
 ## Install from the .vsix
@@ -19,7 +21,7 @@ Run standard SQLite SQL against any delimited text file — recreating the Notep
 2. Run **CSV Query: Open Query Panel** — Command Palette, editor/Explorer right-click → *Query with CSV Query*, or shortcut **Option+Command+Q** (macOS) / **Alt+Ctrl+Q** (Windows/Linux).
 3. Press **Cmd/Ctrl+Enter** to run. Default: `SELECT * FROM THIS LIMIT 1000;`
 
-The query view opens in the Panel below the editor (your file keeps the full editor width). It shows source, delimiter, header, column/row counts and load time; a sortable (click header), filterable, paginated grid (1,000 rows/page, paging through the complete result set — no 10,000-row browsing cap); NULL distinct from empty string; double-click a cell to copy it. The SQL box grows with your query (one line tall for a one-line query). Query history (last 50, persisted, click to restore, pinned entries survive Clear History via the Clear Query History command clearing unpinned) sits behind the History button, collapsed by default.
+The query view opens in the Panel below the editor (your file keeps the full editor width). It shows source, delimiter, header, column/row counts and load time; a sortable (click header), filterable, paginated grid (1,000 rows/page, paging through the complete result set — no 10,000-row browsing cap); NULL distinct from empty string; double-click a cell to copy it. The SQL box grows with your query (one line tall for a one-line query). Query history (last 50, persisted, click to restore, pinned entries survive Clear History via the Clear Query History command clearing unpinned) sits behind the History button, collapsed by default. **Color Columns** (button in the same row, or the Command Palette) colours the loaded file by column, using the same delimiter as the query, quote-aware, following delimiter changes live. Files VS Code syncs to extensions are painted in place in their open editor; larger files flip their tab to the Color Editor (read-only — flip back to edit) — either way the file keeps exactly one tab. You can also right-click any delimited file in the Explorer → **Open in Color Editor**, or use "Open With…". Colour every loaded file automatically with `csvQuery.colorColumnsByDefault`. For untitled/unsaved buffers with no document open, Color Columns shows a 300-line colourised preview instead. One known limit: a quoted field containing a literal line break can misalign the colours on the following lines.
 
 ## The THIS table
 The active file is always table `THIS` (quoted internally, you write it plainly):
@@ -60,13 +62,13 @@ SELECT t.* FROM THIS t LEFT JOIN REF r ON t.Employee_ID = r.Employee_ID WHERE r.
 **CSV Query: Export Query Results** (or the panel button) — a Save dialog pre-filled with `<source>_results.csv` in the source file's folder (just confirm or rename — that's where the file lands), CSV or TSV by file extension, correct quoting for embedded delimiters/quotes/newlines, headers included, leading zeros preserved, optional UTF-8 BOM via `csvQuery.exportIncludeBom`. Export re-runs your last query and streams the complete result set to the file — there is no row cap. (A `LIMIT` you write in your own SQL still applies, since it bounds the query itself.)
 
 ## Large files
-Files are parsed with Papa Parse and inserted in a single transaction in batches. Files on disk are read directly from disk, so VS Code's 50 MB document-sync limit does not apply — a 50 MB+ ledger loads and queries the same way a small file does (verified on a real 1,692,797-row file). Above `csvQuery.largeFileWarningMB` (default 200 MB) you get a Continue/Cancel warning with the size. ~100 MB files are the design target; multi-GB files are out of scope for v1.
+Files are parsed with Papa Parse and inserted in a single transaction in batches. Files on disk are streamed from disk — never held whole in memory — so VS Code's 50 MB document-sync limit does not apply and there is no string-length ceiling: a 50 MB+ ledger loads and queries the same way a small file does (verified on a real 1,692,797-row file), and multi-hundred-MB exports load the same way. Above `csvQuery.largeFileWarningMB` (default 200 MB) you get a Continue/Cancel warning with the size.
 
 ## Privacy
 Local-only. No telemetry, analytics, external API calls, or CDN scripts. Imported file data is held only in memory and discarded when the panel closes; only query text is kept in history.
 
 ## Settings
-`csvQuery.defaultDelimiter`, `autoDetectDelimiter`, `firstRowIsHeader` (auto/true/false), `queryHistorySize` (50), `exportIncludeBom`, `treatAllColumnsAsText`, `enableLargeFileWarning`, `largeFileWarningMB`, `defaultQuery`, `rememberLastDelimiterByFile`. `defaultResultLimit` / `maxResultLimit` are deprecated and no longer restrict anything — results are uncapped.
+`csvQuery.defaultDelimiter`, `autoDetectDelimiter`, `firstRowIsHeader` (auto/true/false), `queryHistorySize` (50), `exportIncludeBom`, `treatAllColumnsAsText`, `enableLargeFileWarning`, `largeFileWarningMB`, `defaultQuery`, `rememberLastDelimiterByFile`, `colorColumnsByDefault` (false). `defaultResultLimit` / `maxResultLimit` are deprecated and no longer restrict anything — results are uncapped.
 
 ## Troubleshooting
 - *Column "X" does not exist* — the panel lists the actual available columns; check for spaces/renamed duplicates (`Name_2`).

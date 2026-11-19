@@ -1,0 +1,15 @@
+body{font-family:var(--vscode-editor-font-family);font-size:12px;background:var(--vscode-editor-background);color:var(--vscode-foreground);margin:0;padding:10px}
+.note{font-family:var(--vscode-font-family);font-size:12px;opacity:.8;margin-bottom:8px}
+.wrap{overflow-x:auto;padding-bottom:8px}
+.ln{white-space:pre;line-height:1.55}
+.no{display:inline-block;min-width:3.5em;margin-right:1em;text-align:right;opacity:.45;user-select:none}
+.d{opacity:.4}
+.hdr{font-weight:700}
+.c0{color:#268bd2}
+.c1{color:#2aa198}
+.c2{color:#859900}
+.c3{color:#b58900}
+.c4{color:#cb4b16}
+.c5{color:#dc322f}
+.c6{color:#d33682}
+.c7{color:#6c71c4}

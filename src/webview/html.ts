@@ -14,7 +14,7 @@ export function getHtml(webview: vscode.Webview, extensionUri: vscode.Uri, defau
 <button class="secondary" id="reload">Reload Active File</button><button class="secondary" id="addFile">Add File as Table</button></div>
 <div id="tables" class="bar"></div>
 <textarea id="sql" rows="1">${dq}</textarea>
-<div class="row"><button id="run">▶ Run (Ctrl/Cmd+Enter)</button><button class="secondary" id="fmt">Format SQL</button><button class="secondary" id="clearSql">Clear</button><button class="secondary" id="export">Export Results</button><button class="secondary" id="histToggle">History ▸</button><span id="meta"></span></div>
+<div class="row"><button id="run">▶ Run (Ctrl/Cmd+Enter)</button><button class="secondary" id="fmt">Format SQL</button><button class="secondary" id="clearSql">Clear</button><button class="secondary" id="export">Export Results</button><button class="secondary" id="colorToggle">Color Columns</button><button class="secondary" id="histToggle">History ▸</button><span id="meta"></span></div>
 <div class="status" id="status">Ready. Table name is THIS — e.g. SELECT * FROM THIS;</div>
 <div class="row"><input id="filter" placeholder="Filter shown rows…" style="flex:1"></div>
 <div class="gridwrap" id="grid"></div>

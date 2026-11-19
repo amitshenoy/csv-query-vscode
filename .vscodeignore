@@ -9,3 +9,5 @@ eslint.config.js
 tsconfig*.json
 node_modules/**
 !out/**
+*.vsix
+*.vsix.bak

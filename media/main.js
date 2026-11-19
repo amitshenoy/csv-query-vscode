@@ -12,6 +12,9 @@ post('ready', {});
 
 let result = { columns: [], rows: [] }, page = 0, sortCol = -1, sortDir = 1, filterText = '';
 let server = { paged: false, total: 0, offset: 0, pageSize: 1000 };
+/* Column colours for grid header tints — must match src/colorizer/palette.ts. */
+const PALETTE = ['#268bd2', '#2aa198', '#859900', '#b58900', '#cb4b16', '#dc322f', '#d33682', '#6c71c4'];
+let colorOn = false;
 const PAGE = 500;
 function el(id) { return document.getElementById(id); }
 function sql() { return el('sql').value; }
@@ -30,6 +33,7 @@ function autoResize() {
 
 el('run').addEventListener('click', function () { post('run', { sql: sql() }); });
 el('export').addEventListener('click', function () { post('export', {}); });
+el('colorToggle').addEventListener('click', function () { post('toggleColor', {}); });
 el('reload').addEventListener('click', function () { post('reload', {}); });
 el('addFile').addEventListener('click', function () { post('addFile', {}); });
 el('clearSql').addEventListener('click', function () { el('sql').value = ''; autoResize(); });
@@ -65,7 +69,7 @@ function render() {
   if (server.paged) {
     el('page').textContent = 'Rows ' + (rows.length ? (server.offset + 1).toLocaleString() + '–' + (server.offset + rows.length).toLocaleString() : '0') + ' of ' + server.total.toLocaleString() + ' · Prev/Next move through the whole result (sorting/filtering apply to this page — use ORDER BY / WHERE in SQL for the whole set)';
     if (!result.columns.length) { el('grid').innerHTML = ''; return; }
-    let h = '<table><thead><tr><th>#</th>' + result.columns.map(function (c, i) { return '<th data-i="' + i + '">' + esc(c) + '</th>'; }).join('') + '</tr></thead><tbody>';
+    let h = '<table><thead><tr><th>#</th>' + result.columns.map(function (c, i) { return '<th data-i="' + i + '"' + (colorOn ? ' style="color:' + PALETTE[i % PALETTE.length] + '"' : '') + '>' + esc(c) + '</th>'; }).join('') + '</tr></thead><tbody>';
     h += rows.map(function (r, ri) { return '<tr><td>' + (server.offset + ri + 1) + '</td>' + r.map(function (v) { return v === null ? '<td class="null">NULL</td>' : '<td>' + esc(v) + '</td>'; }).join('') + '</tr>'; }).join('') + '</tbody></table>';
     const g = el('grid'); g.innerHTML = h;
     g.querySelectorAll('th[data-i]').forEach(function (th) { th.addEventListener('click', function () { const i = +th.dataset.i; if (sortCol === i) sortDir *= -1; else { sortCol = i; sortDir = 1; } render(); }); });
@@ -77,7 +81,7 @@ function render() {
   const slice = rows.slice(page * PAGE, (page + 1) * PAGE);
   el('page').textContent = 'Page ' + (page + 1) + ' / ' + pages + ' · ' + rows.length + ' shown rows';
   if (!result.columns.length) { el('grid').innerHTML = ''; return; }
-  let h = '<table><thead><tr><th>#</th>' + result.columns.map(function (c, i) { return '<th data-i="' + i + '">' + esc(c) + '</th>'; }).join('') + '</tr></thead><tbody>';
+  let h = '<table><thead><tr><th>#</th>' + result.columns.map(function (c, i) { return '<th data-i="' + i + '"' + (colorOn ? ' style="color:' + PALETTE[i % PALETTE.length] + '"' : '') + '>' + esc(c) + '</th>'; }).join('') + '</tr></thead><tbody>';
   h += slice.map(function (r, ri) {
     return '<tr><td>' + (page * PAGE + ri + 1) + '</td>' + r.map(function (v) { return v === null ? '<td class="null">NULL</td>' : '<td>' + esc(v) + '</td>'; }).join('') + '</tr>';
   }).join('') + '</tbody></table>';
@@ -96,4 +100,5 @@ window.addEventListener('message', function (e) {
     el('history').querySelectorAll('.hist').forEach(function (node) { node.addEventListener('click', function () { el('sql').value = m.items[+node.dataset.i].sql; autoResize(); }); });
   }
   if (m.type === 'setSql') { el('sql').value = m.sql; autoResize(); }
+  if (m.type === 'colorState') { colorOn = !!m.enabled; el('colorToggle').className = colorOn ? 'secondary active' : 'secondary'; render(); }
 });

@@ -1,19 +1,27 @@
-
 import type { Database } from 'sql.js';
 import { quoteIdent } from '../utils/identifiers';
 import type { ParsedFile } from '../parser/delimitedParser';
 export interface LoadedTable { name: string; source: string; rows: number; columns: number; columnNames: string[]; }
 function lit(v: string): string { return "'" + String(v ?? '').replace(/'/g, "''") + "'"; }
-function insertChunk(db: Database, q: string, parsed: ParsedFile, from: number, to: number) {
-  const tuples: string[] = [];
-  for (let i = from; i < to; i++) tuples.push('(' + parsed.rows[i].map(lit).join(',') + ')');
-  db.run(`INSERT INTO ${q} VALUES ${tuples.join(',')};`);
+/** Insert raw row arrays as one bulk literal INSERT — crosses the JS/WASM boundary
+    once per call instead of once per row. Rows must already match the column count. */
+export function insertRows(db: Database, quotedTable: string, rows: string[][]) {
+  if (!rows.length) return;
+  const tuples = rows.map(r => '(' + r.map(lit).join(',') + ')');
+  db.run(`INSERT INTO ${quotedTable} VALUES ${tuples.join(',')};`);
 }
-function createTable(db: Database, tableName: string, parsed: ParsedFile) {
+/** DROP + CREATE a table with ALL columns TEXT from {name} columns; returns the quoted name. */
+export function createTableFromColumns(db: Database, tableName: string, columns: { name: string }[]): string {
   const q = quoteIdent(tableName);
   db.run(`DROP TABLE IF EXISTS ${q};`);
-  db.run(`CREATE TABLE ${q} (${parsed.columns.map(c => `${quoteIdent(c.name)} TEXT`).join(', ')});`);
+  db.run(`CREATE TABLE ${q} (${columns.map(c => `${quoteIdent(c.name)} TEXT`).join(', ')});`);
   return q;
+}
+function insertChunk(db: Database, q: string, parsed: ParsedFile, from: number, to: number) {
+  insertRows(db, q, parsed.rows.slice(from, to));
+}
+function createTable(db: Database, tableName: string, parsed: ParsedFile) {
+  return createTableFromColumns(db, tableName, parsed.columns);
 }
 const CHUNK = 500;
 /** Create table with ALL columns TEXT and insert in bulk chunks inside one transaction.

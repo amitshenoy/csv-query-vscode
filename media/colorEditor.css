@@ -1,0 +1,9 @@
+html,body{height:100%}
+body{padding:0;overflow:hidden;font-size:13px}
+#head{position:absolute;top:0;left:0;right:0;height:24px;line-height:24px;padding:0 10px;font-family:var(--vscode-font-family);font-size:12px;opacity:.85;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#scroll{position:absolute;top:24px;left:0;right:0;bottom:0;overflow:auto}
+#content{position:relative;width:max-content;min-width:100%}
+#spacer{width:1px}
+#win{position:absolute;left:0;top:0}
+.ln{height:19px;line-height:19px;white-space:pre}
+.loading{padding:12px;font-family:var(--vscode-font-family);font-size:12px}

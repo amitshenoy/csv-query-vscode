@@ -33,4 +33,15 @@ test('shipped webview script loads, posts ready, Run posts the SQL, Clear emptie
   assert.equal(wrap.scrollCalls.length, 1, 'Opening History must scroll the history area into view');
   makeEl('histToggle').handlers.click(); assert.equal(wrap.hidden, true, 'History button must hide the history list again');
   assert.equal(wrap.scrollCalls.length, 1, 'Closing History must not scroll');
+  // v1.2.0: Color Columns button posts toggleColor; the colorState message marks
+  // the button active and tints the grid headers with the shared palette.
+  assert.equal(typeof makeEl('colorToggle').handlers.click, 'function'); makeEl('colorToggle').handlers.click();
+  assert.ok(posted.some(m => m.type === 'toggleColor'), 'Color Columns click must post toggleColor');
+  windowHandlers['message']({ data: { type: 'colorState', enabled: true } });
+  assert.equal(makeEl('colorToggle').className, 'secondary active', 'colorState on must mark the button active');
+  windowHandlers['message']({ data: { type: 'result', columns: ['Alpha', 'Beta'], rows: [['1', '2']], paged: false, total: 1, offset: 0, pageSize: 1000, meta: '1 rows' } });
+  assert.ok(makeEl('grid').innerHTML.includes('color:#268bd2'), 'grid header 1 must be tinted with palette colour 1 when colours are on');
+  assert.ok(makeEl('grid').innerHTML.includes('color:#2aa198'), 'grid header 2 must be tinted with palette colour 2 when colours are on');
+  windowHandlers['message']({ data: { type: 'colorState', enabled: false } });
+  assert.equal(makeEl('colorToggle').className, 'secondary', 'colorState off must unmark the button');
 });

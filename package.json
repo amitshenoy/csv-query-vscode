@@ -2,7 +2,7 @@
   "name": "csv-query-for-vscode",
   "displayName": "CSV Query for VS Code",
   "description": "Run SQLite SQL against any delimited text file \u2014 like Notepad++ CSV Query. Table THIS, all columns TEXT, leading zeros preserved.",
-  "version": "1.1.1",
+  "version": "1.3.7",
   "publisher": "amitshenoy",
   "license": "UNLICENSED",
   "engines": {
@@ -15,7 +15,9 @@
   "activationEvents": [
     "onCommand:csvQuery.openQueryPanel",
     "onCommand:csvQuery.queryWith",
-    "onView:csvQuery.view"
+    "onView:csvQuery.view",
+    "onCustomEditor:csvQuery.colorEditor",
+    "onCommand:csvQuery.openColorEditor"
   ],
   "main": "./out/extension.js",
   "scripts": {
@@ -72,8 +74,17 @@
         "title": "CSV Query: Clear Query History"
       },
       {
+        "command": "csvQuery.toggleColors",
+        "title": "CSV Query: Toggle Column Colors"
+      },
+      {
         "command": "csvQuery.queryWith",
         "title": "Query with CSV Query"
+      },
+      {
+        "command": "csvQuery.openColorEditor",
+        "title": "Open in Color Editor",
+        "category": "CSV Query"
       }
     ],
     "keybindings": [
@@ -96,6 +107,18 @@
         {
           "command": "csvQuery.queryWith",
           "group": "navigation@90"
+        },
+        {
+          "command": "csvQuery.openColorEditor",
+          "group": "navigation@91",
+          "when": "resourceScheme == file"
+        }
+      ],
+      "editor/title/context": [
+        {
+          "command": "csvQuery.openColorEditor",
+          "group": "navigation@91",
+          "when": "resourceScheme == file"
         }
       ]
     },
@@ -143,14 +166,6 @@
           "default": true,
           "description": "Always TEXT (locked on for identifier preservation in this build)."
         },
-        "csvQuery.enableLargeFileWarning": {
-          "type": "boolean",
-          "default": true
-        },
-        "csvQuery.largeFileWarningMB": {
-          "type": "number",
-          "default": 200
-        },
         "csvQuery.defaultQuery": {
           "type": "string",
           "default": "SELECT *\nFROM THIS\nLIMIT 1000;"
@@ -158,9 +173,49 @@
         "csvQuery.rememberLastDelimiterByFile": {
           "type": "boolean",
           "default": true
+        },
+        "csvQuery.colorColumnsByDefault": {
+          "type": "boolean",
+          "default": false,
+          "description": "Open the Color Editor automatically when a file is loaded in the query panel (the Color Columns toggle can still close it)."
+        },
+        "csvQuery.followActiveEditor": {
+          "type": "boolean",
+          "default": true,
+          "description": "Load the file in the active editor automatically when you switch to it, so the panel and its results always match the file you are looking at. Switching files cancels a load still in progress."
         }
       }
-    }
+    },
+    "customEditors": [
+      {
+        "viewType": "csvQuery.colorEditor",
+        "displayName": "CSV Query Color Editor",
+        "selector": [
+          {
+            "filenamePattern": "*.txt"
+          },
+          {
+            "filenamePattern": "*.csv"
+          },
+          {
+            "filenamePattern": "*.tsv"
+          },
+          {
+            "filenamePattern": "*.dat"
+          },
+          {
+            "filenamePattern": "*.clar"
+          },
+          {
+            "filenamePattern": "*.log"
+          },
+          {
+            "filenamePattern": "*"
+          }
+        ],
+        "priority": "option"
+      }
+    ]
   },
   "dependencies": {
     "papaparse": "^5.7.0",
