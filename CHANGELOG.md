@@ -1,4 +1,6 @@
 # Changelog
+## 1.3.8 — 2026-11-20
+- Docs: README no longer mentions the removed large-file warning settings.
 ## 1.3.7 — 2026-11-19
 - Removed: the "file is N MB. Continue?" prompt when loading a large file into the panel. It interrupted exactly the workflow the extension is for — big exports loading (including automatic loads when following the active editor) — and Amit's instruction was plain: don't bug the users with this. Large files now just load, with progress in the source bar as before. The csvQuery.enableLargeFileWarning / csvQuery.largeFileWarningMB settings are gone with it.
 ## 1.3.6 — 2026-11-19

@@ -62,13 +62,13 @@ SELECT t.* FROM THIS t LEFT JOIN REF r ON t.Employee_ID = r.Employee_ID WHERE r.
 **CSV Query: Export Query Results** (or the panel button) — a Save dialog pre-filled with `<source>_results.csv` in the source file's folder (just confirm or rename — that's where the file lands), CSV or TSV by file extension, correct quoting for embedded delimiters/quotes/newlines, headers included, leading zeros preserved, optional UTF-8 BOM via `csvQuery.exportIncludeBom`. Export re-runs your last query and streams the complete result set to the file — there is no row cap. (A `LIMIT` you write in your own SQL still applies, since it bounds the query itself.)
 
 ## Large files
-Files are parsed with Papa Parse and inserted in a single transaction in batches. Files on disk are streamed from disk — never held whole in memory — so VS Code's 50 MB document-sync limit does not apply and there is no string-length ceiling: a 50 MB+ ledger loads and queries the same way a small file does (verified on a real 1,692,797-row file), and multi-hundred-MB exports load the same way. Above `csvQuery.largeFileWarningMB` (default 200 MB) you get a Continue/Cancel warning with the size.
+Files are parsed with Papa Parse and inserted in a single transaction in batches. Files on disk are streamed from disk — never held whole in memory — so VS Code's 50 MB document-sync limit does not apply and there is no string-length ceiling: a 50 MB+ ledger loads and queries the same way a small file does (verified on a real 1,692,797-row file), and multi-hundred-MB exports load the same way.
 
 ## Privacy
 Local-only. No telemetry, analytics, external API calls, or CDN scripts. Imported file data is held only in memory and discarded when the panel closes; only query text is kept in history.
 
 ## Settings
-`csvQuery.defaultDelimiter`, `autoDetectDelimiter`, `firstRowIsHeader` (auto/true/false), `queryHistorySize` (50), `exportIncludeBom`, `treatAllColumnsAsText`, `enableLargeFileWarning`, `largeFileWarningMB`, `defaultQuery`, `rememberLastDelimiterByFile`, `colorColumnsByDefault` (false). `defaultResultLimit` / `maxResultLimit` are deprecated and no longer restrict anything — results are uncapped.
+`csvQuery.defaultDelimiter`, `autoDetectDelimiter`, `firstRowIsHeader` (auto/true/false), `queryHistorySize` (50), `exportIncludeBom`, `treatAllColumnsAsText`, `defaultQuery`, `rememberLastDelimiterByFile`, `colorColumnsByDefault` (false). `defaultResultLimit` / `maxResultLimit` are deprecated and no longer restrict anything — results are uncapped.
 
 ## Troubleshooting
 - *Column "X" does not exist* — the panel lists the actual available columns; check for spaces/renamed duplicates (`Name_2`).
@@ -79,7 +79,7 @@ Local-only. No telemetry, analytics, external API calls, or CDN scripts. Importe
 ```bash
 npm install
 npm run compile   # esbuild bundle + copies sql-wasm.wasm to out/
-npm test          # 29 unit tests (node:test) covering acceptance tests 4–12 plus detection, webview, paging and large-file loading
+npm test          # 54 unit tests (node:test) covering acceptance tests 4–12 plus detection, webview, paging and large-file loading
 npm run lint
 npm run package   # produces the .vsix
 ```
